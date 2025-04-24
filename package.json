@@ -1,0 +1,29 @@
+{
+  "name": "test",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@auth/nextjs": "^0.0.0-380f8d56",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.14.13",
+    "express-session": "^1.18.1",
+    "mailersend": "^2.2.0",
+    "mongodb": "^6.1.0",
+    "next": "^13.5.7-canary.16",
+    "next-auth": "^4.24.11",
+    "next-iron-session": "^4.2.0",
+    "picocolors": "^1.0.0",
+    "react": "latest",
+    "react-dom": "latest",
+    "react-router-dom": "^7.4.1",
+    "request": "^2.88.2",
+    "requests": "^0.3.0"
+  }
+}
