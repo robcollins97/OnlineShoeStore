@@ -1,118 +1,130 @@
 'use client';
 import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import Button from '@mui/material/Button';
-import CssBaseline from '@mui/material/CssBaseline';
-import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
-import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-
-import Typography from '@mui/material/Typography';
-import Container from '@mui/material/Container';
-import {ThemeProvider } from '@mui/material/styles';
-
-import { createTheme } from '@mui/material/styles';
-import { green, purple } from '@mui/material/colors';
-import { useState, useEffect } from 'react'
-
-
-
-
-
+import { useState, useEffect } from 'react';
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  CssBaseline,
+  Container,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+  ThemeProvider,
+  createTheme
+} from '@mui/material';
+import { green } from '@mui/material/colors';
+import CardMedia from '@mui/material/CardMedia';
+import { signOut, useSession } from 'next-auth/react'; // Import signOut and useSession
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 export default function Page() {
+  const [data, setData] = useState(null);
+  const [weather, setWeatherData] = useState(null);
+  const { status } = useSession(); // Get session status
+  const router = useRouter(); // Initialize router
 
-
-  //
-  // function for putting items into the shopping cart.
-  //
-  function putInCart(pname){
-
-    console.log("putting in cart: " + pname)
-
-
-    fetch("api/putInCart?pname="+pname);
-
-
- 
-  }
-
-
-
-
-
-  const [data, setData] = useState(null)
-  const [weather, setWeatherData] = useState(0)
- 
   useEffect(() => {
-    fetch('api/getProducts')
+    fetch("/api/getProducts")
       .then((res) => res.json())
-      .then((data) => {
-        setData(data)
-      })
+      .then(setData)
+      .catch((err) => console.error("Error fetching products:", err));
 
-      fetch('api/getWeather')
+    fetch("/api/getWeather")
       .then((res) => res.json())
-      .then((weather) => {
-        setWeatherData(weather)
-      })
+      .then(setWeatherData)
+      .catch((err) => console.error("Error fetching weather:", err));
 
+    if (status === 'unauthenticated') {
+      router.push('/'); // Redirect to login page if not authenticated
+    }
+  }, [status, router]);
 
-  }, [])
- 
-
-  if (!data) return <p>No data</p>
-
-
-
-  
   const theme = createTheme({
     palette: {
-     
       secondary: {
         main: green[500],
       },
     },
   });
+
+  const putInCart = async (pname, price, image) => {
+    try {
+      const res = await fetch('/api/putInCart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pname, price, image }), // Include price and image
+      });
   
-
-
-
-
-
-  if (!weather) return <p>No weather</p>
+      const result = await res.json();
   
+      if (!res.ok) {
+        console.error("Failed to add to cart:", result.error);
+      } else {
+        console.log("Cart updated:", result.message);
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+    }
+  };
+
+
+  if (!data || !weather || status === 'loading') return <p>Loading...</p>;
+
   return (
     <ThemeProvider theme={theme}>
-      Today's temperature: {JSON.stringify(weather.temp)}
-    <Container component="main"  maxWidth="xs">
- 
-       <div style={{fontSize: '40px'}} > Dashboard</div>
-        <div>
-      {
-        data.map((item, i) => (
-          <div style={{padding: '20px'}} key={i} >
-            Unique ID: {item._id}
-            <br></br>
-            {item.pname}
-            - 
-            {item.price}
-            <br></br>
-            <Button onClick={() => putInCart(item.pname)} variant="outlined"> Add to cart </Button>
+      <CssBaseline />
+      <AppBar position="static" color="default">
+        <Toolbar style={{ justifyContent: 'space-between' }}>
+          <Typography variant="h6">Shoe Store</Typography>
+          <div>
+            <Button color="inherit" href="/mens">Men's</Button>
+            <Button color="inherit" href="/womens">Women's</Button>
+            <Button color="inherit" href="/kids">Kids'</Button>
+            <Button color="inherit" href="/cart">View My Cart</Button>
+            <Button color="inherit" href="/profile">Profile</Button>
+            <Button color="inherit" onClick={() => signOut({ redirect: '/' })}>Sign Out</Button> {/* Logout Button */}
           </div>
-        ))
-      }
-    </div>
+        </Toolbar>
+      </AppBar>
 
-    </Container>
+      <Container maxWidth="md" style={{ marginTop: '2rem' }}>
+        <Typography variant="h5" gutterBottom>
+          Today's Temperature: {weather.temp}°C
+        </Typography>
 
+        <Grid container spacing={3}>
+          {data.map((item, i) => (
+            <Grid item xs={12} sm={6} md={4} key={i}>
+              <Card elevation={3}>
+                <CardMedia
+                  component="img"
+                  height="180"
+                  image={item.image} // this assumes the field is called 'image'
+                  alt={item.pname}
+                  onError={(e) => e.target.style.display = 'none'}  // Hide image if missing
+                />
+                <CardContent>
+                  <Typography variant="h6">{item.pname}</Typography>
+                  <Typography color="text.secondary">€{item.price}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    ID: {item._id}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button onClick={() => putInCart(item.pname,item.price,item.image)} variant="contained" size="small">
+                    Add to Cart
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
     </ThemeProvider>
-
   );
 }
-
-
-

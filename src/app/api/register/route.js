@@ -1,50 +1,55 @@
+import { MongoClient } from 'mongodb';
+
 export async function GET(req, res) {
+  console.log("In the API page");
 
-  // Make a note we are on
-  // the api. This goes to the console.
-  console.log("in the api page")
-
-
-  // get the values
-  // that were sent across to us.
-  const { searchParams } = new URL(req.url)
-  const email = searchParams.get('email')
-  const pass = searchParams.get('pass')
-  const dob = searchParams.get('dob')
-
-
-  console.log(email);
-  console.log(pass);
-  console.log(dob);
-
- // =================================================
-  const { MongoClient } = require('mongodb');
-
-  const url = 'mongodb+srv://kyle:vurg1fChCkNTR0zo@cluster0.vgnfxgh.mongodb.net/?retryWrites=true&w=majority';
-  const client = new MongoClient(url);
-  
+  const { searchParams } = new URL(req.url);
+  const email = searchParams.get('email');
+  const email2 = searchParams.get('email2');
+  const pass = searchParams.get('pass');
+  const pass2 = searchParams.get('pass2');
  
-  const dbName = 'app'; // database name
 
-  await client.connect();
-  console.log('Connected successfully to server');
-  const db = client.db(dbName);
-  const collection = db.collection('login'); // collection name
+  console.log(email, email2, pass, pass2);
 
+  const url = "mongodb://admin:pass@localhost:27017/?authSource=admin";
+  const client = new MongoClient(url);
+  const dbName = 'ShoeStoreDB';
 
-  const findResult = await collection.insertOne({"username": email, "pass": pass, "dob": dob});
-  console.log('Found documents =>', findResult);
+  let valid = false; // Declare valid before using it
 
- let valid=true;
+  try {
+    await client.connect();
+    console.log('Connected successfully to server');
 
+    const db = client.db(dbName);
+    const collection = db.collection('login');
 
- //==========================================================
+    if (email === email2 && pass === pass2) {
+      const insertResult = await collection.insertOne({
+        username: email,
+        pass: pass,
+      
+      });
 
+      console.log('Insert Result:', insertResult);
+      valid = true;
+    } else {
+      console.log('Emails or passwords do not match');
+    }
 
+    return new Response(JSON.stringify({ data: valid }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
 
-
-
-  // at the end of the process we need to send something back.
-  return Response.json({ "data":"" + valid + ""})
+  } catch (error) {
+    console.error('Database error:', error);
+    return new Response(JSON.stringify({ error: 'Database connection failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } finally {
+    await client.close(); // Close DB connection to prevent memory leaks
+  }
 }
 

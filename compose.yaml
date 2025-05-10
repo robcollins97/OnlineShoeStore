@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    ports:
+      - "27017:27017"  # Exposes MongoDB on port 27017
+    volumes:
+      - mongo-data:/data/db  # Persist MongoDB data in the 'mongo-data' volume
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8081:8081"  # Exposes Mongo Express on port 8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pass
+      ME_CONFIG_MONGODB_URL: mongodb://admin:pass@mongo:27017/
+
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:  # This line defines a named volume for MongoDB data persistence
+    driver: local  # Local storage for the volume

@@ -14,7 +14,7 @@ export async function GET(req) {
     const db = client.db(dbName);
     const collection = db.collection('products'); // Collection name
 
-    const findResult = await collection.find({}).toArray();
+    const findResult = await collection.find({type:'K'}).toArray();
     console.log('Found documents =>', findResult);
 
     // Close the connection after fetching data

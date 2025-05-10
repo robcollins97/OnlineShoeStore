@@ -12,7 +12,7 @@ export async function GET(req) {
     console.log('Connected successfully to MongoDB');
 
     const db = client.db(dbName);
-    const collection = db.collection('products'); // Collection name
+    const collection = db.collection('login'); // Collection name
 
     const findResult = await collection.find({}).toArray();
     console.log('Found documents =>', findResult);
